@@ -3,6 +3,7 @@ This is a Recplicated log task realization from DE UCU program
 ## Setting up
 This package among others use flask web-server framework
 To install all required packages run
+
 pip3 install -r requirements.txt
 ## Running
 ### Primary node
