@@ -1,8 +1,10 @@
-import sys
+from gevent import monkey
+monkey.patch_all()
+
 import json
 from flask import Flask
 from flask import request, make_response
-from models import PrimaryNode
+from model import PrimaryNode
 
 primary_node = PrimaryNode()
 
@@ -39,10 +41,11 @@ def list_message():
     
 
 if __name__ == '__main__':
-    opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
-    args = [args for args in sys.argv[1:] if not args.startswith('-')]
-    named_args = dict(zip(opts, args))
-    if '-P' in named_args.keys():
-        app.run(port=named_args['-P'], debug=True, threaded=True)
-    else:
-        app.run(port=5000, debug=True, threaded=True)
+    # opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
+    # args = [args for args in sys.argv[1:] if not args.startswith('-')]
+    # named_args = dict(zip(opts, args))
+    # if '-P' in named_args.keys():
+    #     app.run(port=named_args['-P'], debug=True, threaded=True)
+    # else:
+    #     app.run(port=5000, debug=True, threaded=True)
+    app.run(host='0.0.0.0', threaded=True)

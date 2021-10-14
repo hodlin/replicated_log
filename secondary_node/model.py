@@ -19,8 +19,6 @@ class Message:
         return f'Message({self.id}, {self.message[:10]})'
 
 
-from message import Message
-
 class SecondaryNode:
     def __init__(self):
         self.messages = list()

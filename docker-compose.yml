@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  primary:
+    build: primary_node
+    ports:
+      - "5000:5000"
+  secondary_1:
+    build: secondary_node
+    ports:
+      - "5001:5000"
+  secondary_2:
+    build: secondary_node
+    ports:
+      - "5002:5000"

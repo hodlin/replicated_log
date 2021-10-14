@@ -1,9 +1,9 @@
-import sys
+from gevent import monkey
+monkey.patch_all()
 import json
-from functools import total_ordering
 from flask import Flask
 from flask import request, make_response
-from models import SecondaryNode
+from model import SecondaryNode
 
 secondary_node = SecondaryNode()
 
