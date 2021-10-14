@@ -3,27 +3,10 @@ import json
 from functools import total_ordering
 from flask import Flask
 from flask import request, make_response
-from werkzeug.wrappers import response
+from message import Message
+from secondary_node import SecondaryNode
 
-@total_ordering
-class Message:
-    def __init__(self, id, message):
-        self.id = id
-        self.message = message
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=4)
-     
-    def __ge__(self, obj):
-        return ((self.id) >= (obj.id))
-
-    def __repr__(self):
-        return f'Message({self.id}, {self.message[:10]})'
-    
-
-messages = list()
-
+secondary_node = SecondaryNode()
 
 app = Flask(__name__)
 
@@ -37,31 +20,31 @@ def add_message():
         response = dict()
         message_data = request.json
         print(message_data)
-        if not message_data or message_data['id'] not in [message.id for message in messages]:
-            messages.append(Message(**message_data))
+        message_added = secondary_node.add_message(**message_data)
+        if message_added:
             response = app.response_class(
                 response=json.dumps({'id': message_data['id'], 'result': True}),
                 status=200,
                 mimetype='application/json'
-            )
+                )
         else:
             response = app.response_class(
                 response=json.dumps({'id': message_data['id'], 'result': False}),
                 status=200,
                 mimetype='application/json'
-            )
+                )   
     else:
         response = app.response_class(
                 response=json.dumps(dict()),
                 status=400,
                 mimetype='application/json'
-            )
+                )
     return response
 
 @app.route('/list_messages', methods=['GET'])
 def list_message():
     response = app.response_class(
-        response=json.dumps([message.to_json() for message in sorted(messages)]),
+        response=json.dumps([message.to_json() for message in secondary_node.messages_to_display()]),
         status=200,
         mimetype='application/json'
     )
