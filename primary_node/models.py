@@ -1,6 +1,36 @@
+import json
 import grequests
-from message import Message
-from secondary_node import SecondaryNode
+from functools import total_ordering
+
+
+@total_ordering
+class Message:
+    def __init__(self, id, message):
+        self.id = id
+        self.message = message
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
+  
+    def __ge__(self, obj):
+        return ((self.id) >= (obj.id))
+
+    def __repr__(self):
+        return f'Message({self.id}, {self.message[:10]})'
+
+
+class SecondaryNode:
+    def __init__(self, id, host, port):
+        self.id = id
+        self.host = host
+        self.port = port
+        self.url = f'http://{host}:{port}'
+        self.add_message_url = self.url + '/add_message'
+        self.stored_messages_id = list()
+
+    def __repr__(self):
+        return f'SecondaryNode({self.host}:{self.port})'
 
 
 class PrimaryNode:
@@ -10,9 +40,17 @@ class PrimaryNode:
         self.max_message_id = 0
         self.secondary_nodes = list()
     
-    def add_secondary_node(self, id, url):
-        secondary_node = SecondaryNode(id, *url.split(':'))
-        self.secondary_nodes.append(secondary_node)
+    def get_secondary_node(self, url):
+        max_id = 0
+        for secondary_node in self.secondary_nodes:
+            max_id = secondary_node.id if secondary_node.id > max_id else max_id
+            if secondary_node.url == url:
+                return secondary_node
+        return SecondaryNode(max_id + 1, *url.split(':'))
+
+    def add_secondary_node(self, url):
+        secondary_node_to_add = self.get_secondary_node(url)
+        self.secondary_nodes.append(secondary_node_to_add)
 
     def add_message(self, message_body):
         new_message_id = self.max_message_id + 1

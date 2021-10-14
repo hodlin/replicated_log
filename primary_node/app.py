@@ -2,7 +2,7 @@ import sys
 import json
 from flask import Flask
 from flask import request, make_response
-from primary_node import PrimaryNode
+from models import PrimaryNode
 
 primary_node = PrimaryNode()
 

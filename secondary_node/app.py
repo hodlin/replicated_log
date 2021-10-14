@@ -3,8 +3,7 @@ import json
 from functools import total_ordering
 from flask import Flask
 from flask import request, make_response
-from message import Message
-from secondary_node import SecondaryNode
+from models import SecondaryNode
 
 secondary_node = SecondaryNode()
 
@@ -52,9 +51,10 @@ def list_message():
     
 
 if __name__ == '__main__':
-    opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
-    args = [args for args in sys.argv[1:] if not args.startswith('-')]
-    named_args = dict(zip(opts, args))
-    assert '-P' in named_args.keys()
-    app.run(port=named_args['-P'], debug=True, threaded=True)
+    # opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
+    # args = [args for args in sys.argv[1:] if not args.startswith('-')]
+    # named_args = dict(zip(opts, args))
+    # assert '-P' in named_args.keys()
+    # app.run(port=named_args['-P'], debug=True, threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
     
