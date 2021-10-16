@@ -39,6 +39,7 @@ class PrimaryNode:
         self.messages_ids = list()
         self.max_message_id = 0
         self.secondary_nodes = list()
+        self.timeout = None
     
     def get_secondary_node(self, url):
         max_id = 0
@@ -69,7 +70,7 @@ class PrimaryNode:
         header = {'content-type': 'application/json'}
         data = message.to_json()
         urls = [secondary_node.add_message_url for secondary_node in self.secondary_nodes]
-        requests = [grequests.post(url, data=data, headers=header, timeout=1) for url in urls]
+        requests = [grequests.post(url, data=data, headers=header, timeout=self.timeout) for url in urls]
         responses = grequests.map(requests, size=len(self.secondary_nodes), exception_handler=exception_handler)
         for response, node in zip(responses, self.secondary_nodes):
             print(response)

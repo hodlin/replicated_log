@@ -1,6 +1,7 @@
 from gevent import monkey
 monkey.patch_all()
 import json
+import time
 from flask import Flask
 from flask import request, make_response
 from model import SecondaryNode
@@ -15,8 +16,8 @@ def index():
 
 @app.route('/add_message', methods=['POST'])
 def add_message():
+    time.sleep(secondary_node.delay)
     if request.method in ['POST']:
-        response = dict()
         message_data = request.json
         print(message_data)
         message_added = secondary_node.add_message(**message_data)
@@ -48,6 +49,14 @@ def list_message():
         mimetype='application/json'
     )
     return response
+
+@app.route('/set_delay', methods=['post'])
+def set_delay():
+    if request.method in ['POST']:
+        response = dict()
+        delay_data = request.json
+        secondary_node.set_delay(delay_data['delay'])
+    return make_response(f'Delay set to {secondary_node.delay}', 200)
     
 
 if __name__ == '__main__':

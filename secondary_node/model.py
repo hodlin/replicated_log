@@ -23,6 +23,7 @@ class SecondaryNode:
     def __init__(self):
         self.messages = list()
         self.messages_ids = list()
+        self.delay = 0
 
     def add_message(self, id, message):
         if id not in self.messages_ids:
@@ -34,6 +35,9 @@ class SecondaryNode:
 
     def messages_to_display(self):
         return self.messages
+
+    def set_delay(self, delay):
+        self.delay = delay
 
     def __repr__(self):
         return f'SecondaryNode({self.id}, {self.host}:{self.port})'
