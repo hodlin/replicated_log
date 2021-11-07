@@ -1,22 +1,34 @@
 # Replicated log
-This is a Recplicated log task realization from DE UCU program
+This is a Recplicated log task realization from Distributed Systems course of Data Engineering progrma at UCU
 ## Setting up
-This package among others use flask web-server framework
-To install all required packages run
+This package among others use flask web-server framework set up with docker
+There one primary node an two secondaries
+To run everything up run docker-compose up
 
-pip3 install -r requirements.txt
 ## Running
 ### Primary node
-To run Primary node primary_node.py should be used
+Primary node is run on 5000 port of localhost and has following interfaces:
 
-python3 primary_node.py -P 10000 -p1 10001 -p2 10002
+POST /add_message
+{
+    "message": "Message text"
+    "w": 1
+}
+Adding message with **w write consern
+Returns success message
 
--P - port to run primary node
--p1 - port on which first secondary node is running
--p2 - port on which second secondary node is running
+GET /list_messages
+Returns a list of messages in sorted order
+
 ### Secondary node
-To run Primary node primary_node.py should be used
+Secondary nodes are running on localhost's 5001 and 5002 ports and has following interfaces:
 
-python3 secondary_node.py -P 10001
+GET /list_messages
+Returns a list of messages in sorted order
 
--P - port to run secondary node
+POST /set_delay
+{
+    "delay": 10
+}
+Sets delay of internal /add_message request to **delay seconds
+Returns confirmation message
