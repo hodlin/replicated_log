@@ -20,7 +20,8 @@ class Message:
 
 
 class SecondaryNode:
-    def __init__(self):
+    def __init__(self, id):
+        self.id = id
         self.messages = list()
         self.messages_ids = list()
         self.delay = 0
@@ -34,7 +35,15 @@ class SecondaryNode:
             return False
 
     def messages_to_display(self):
-        return self.messages
+        messages_to_show = list()
+        prev_message_id = 0
+        for message in sorted(self.messages):
+            if message.id == prev_message_id + 1:
+                messages_to_show.append(message)
+                prev_message_id = message.id
+            else:
+                break
+        return messages_to_show
 
     def set_delay(self, delay):
         self.delay = delay

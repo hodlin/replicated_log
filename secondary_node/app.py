@@ -1,12 +1,11 @@
-from gevent import monkey
-monkey.patch_all()
+import sys
 import json
 import time
 from flask import Flask
 from flask import request, make_response
 from model import SecondaryNode
 
-secondary_node = SecondaryNode()
+secondary_node = None
 
 app = Flask(__name__)
 
@@ -20,16 +19,16 @@ def add_message():
     if request.method in ['POST']:
         message_data = request.json
         print(message_data)
-        message_added = secondary_node.add_message(**message_data)
+        message_added = secondary_node.add_message(message_data['id'], message_data['message'])
         if message_added:
             response = app.response_class(
-                response=json.dumps({'id': message_data['id'], 'result': True}),
+                response=json.dumps({'node_id': secondary_node.id, 'message_id': message_data['id'], 'result': True}),
                 status=200,
                 mimetype='application/json'
                 )
         else:
             response = app.response_class(
-                response=json.dumps({'id': message_data['id'], 'result': False}),
+                response=json.dumps({'node_id': secondary_node.id, 'message_id': message_data['id'], 'result': False}),
                 status=200,
                 mimetype='application/json'
                 )   
@@ -50,6 +49,15 @@ def list_message():
     )
     return response
 
+@app.route('/get_id', methods=['GET'])
+def get_id():
+    response = app.response_class(
+                response=json.dumps({'id': secondary_node.id}),
+                status=200,
+                mimetype='application/json'
+                )   
+    return response
+
 @app.route('/set_delay', methods=['post'])
 def set_delay():
     if request.method in ['POST']:
@@ -60,10 +68,8 @@ def set_delay():
     
 
 if __name__ == '__main__':
-    # opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
-    # args = [args for args in sys.argv[1:] if not args.startswith('-')]
-    # named_args = dict(zip(opts, args))
-    # assert '-P' in named_args.keys()
-    # app.run(port=named_args['-P'], debug=True, threaded=True)
+    secondary_node = SecondaryNode(sys.argv[1])
     app.run(host='0.0.0.0', threaded=True)
+    
+    # app.run(host='localhost', port=str(sys.argv[2]), threaded=True, debug=True)
     

@@ -6,9 +6,11 @@ services:
       - "5000:5000"
   secondary_1:
     build: secondary_node
+    command: app.py 201
     ports:
       - "5001:5000"
   secondary_2:
     build: secondary_node
+    command: app.py 202
     ports:
       - "5002:5000"

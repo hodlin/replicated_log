@@ -24,7 +24,10 @@ def add_secondary_node():
 def add_message():
     if request.method == 'POST':
         message_data = request.json
-        id = primary_node.add_message(message_data['message'])
+        print(message_data)
+        write_concern = message_data['w']
+        message = message_data['message']
+        id = primary_node.add_message(message, write_concern)
         response = make_response(f'Message saved with id {id}', 200)
     else:
         response = make_response("Bad request", 400)
@@ -41,11 +44,10 @@ def list_message():
     
 
 if __name__ == '__main__':
-    # opts = [opt for opt in sys.argv[1:] if opt.startswith('-')]
-    # args = [args for args in sys.argv[1:] if not args.startswith('-')]
-    # named_args = dict(zip(opts, args))
-    # if '-P' in named_args.keys():
-    #     app.run(port=named_args['-P'], debug=True, threaded=True)
-    # else:
-    #     app.run(port=5000, debug=True, threaded=True)
+    primary_node.add_secondary_node(201, 'secondary_1:5000')
+    primary_node.add_secondary_node(202, 'secondary_2:5000')
     app.run(host='0.0.0.0', threaded=True)
+
+    # primary_node.add_secondary_node(201, 'localhost:5001')
+    # primary_node.add_secondary_node(202, 'localhost:5002')
+    # app.run(host='localhost', port='5000', threaded=True, debug=True)
