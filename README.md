@@ -1,5 +1,5 @@
 # Replicated log
-This is a Recplicated log task realization from Distributed Systems course of Data Engineering progrma at UCU
+This is a Recplicated log task realization from Distributed Systems course of Data Engineering 2021 program at UCU
 ## Setting up
 This package among others use flask web-server framework set up with docker
 There one primary node an two secondaries
