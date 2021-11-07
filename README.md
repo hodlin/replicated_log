@@ -9,26 +9,34 @@ To run everything up run docker-compose up
 ### Primary node
 Primary node is run on 5000 port of localhost and has following interfaces:
 
-POST /add_message
+#### POST /add_message
+
 {
     "message": "Message text"
     "w": 1
 }
+
 Adding message with ***w*** write consern
+
 Returns success message
 
-GET /list_messages
+#### GET /list_messages
+
 Returns a list of messages in sorted order
 
 ### Secondary node
 Secondary nodes are running on localhost's 5001 and 5002 ports and has following interfaces:
 
-GET /list_messages
+#### GET /list_messages
+
 Returns a list of messages in sorted order
 
-POST /set_delay
+#### POST /set_delay
+
 {
     "delay": 10
 }
+
 Sets delay of internal /add_message request to ***delay*** seconds
+
 Returns confirmation message
