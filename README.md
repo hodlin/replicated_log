@@ -14,7 +14,7 @@ POST /add_message
     "message": "Message text"
     "w": 1
 }
-Adding message with **w** write consern
+Adding message with ***w*** write consern
 Returns success message
 
 GET /list_messages
@@ -30,5 +30,5 @@ POST /set_delay
 {
     "delay": 10
 }
-Sets delay of internal /add_message request to **delay** seconds
+Sets delay of internal /add_message request to ***delay*** seconds
 Returns confirmation message
