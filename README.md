@@ -29,7 +29,7 @@ Secondary nodes are running on localhost's 5001 and 5002 ports and has following
 
 #### GET /list_messages
 
-Returns a list of messages in sorted order
+Returns a list of messages in sorted order. If any message is missent later ones won't be shown
 
 #### POST /set_delay
 
