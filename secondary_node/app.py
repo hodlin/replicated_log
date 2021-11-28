@@ -28,10 +28,9 @@ def add_message():
                 )
         else:
             response = app.response_class(
-                response=json.dumps({'node_id': secondary_node.id, 'message_id': message_data['id'], 'result': False}),
-                status=200,
+                status=500,
                 mimetype='application/json'
-                )   
+                )
     else:
         response = app.response_class(
                 response=json.dumps(dict()),
@@ -43,7 +42,7 @@ def add_message():
 @app.route('/list_messages', methods=['GET'])
 def list_message():
     response = app.response_class(
-        response=json.dumps([message.to_json() for message in secondary_node.messages_to_display()]),
+        response=json.dumps({'messages': [message.to_json() for message in secondary_node.messages_to_display()]}),
         status=200,
         mimetype='application/json'
     )
@@ -61,15 +60,47 @@ def get_id():
 @app.route('/set_delay', methods=['post'])
 def set_delay():
     if request.method in ['POST']:
-        response = dict()
         delay_data = request.json
         secondary_node.set_delay(delay_data['delay'])
     return make_response(f'Delay set to {secondary_node.delay}', 200)
-    
+
+@app.route('/get_health', methods=['get'])
+def get_health():
+    time.sleep(secondary_node.delay)
+    if request.method in ['GET']:
+        response = app.response_class(
+                response=json.dumps({'node_id': secondary_node.id, 'is_healthy': True}),
+                status=200,
+                mimetype='application/json'
+                )
+    else:
+        response = app.response_class(
+                status=500,
+                )
+    return response
+
+@app.route('/set_fault_rate', methods=['POST'])
+def set_fault_rate():
+    if request.method in ['POST']:
+        fault_rate = request.json['fault_rate']
+        secondary_node.set_fault_rate(fault_rate)
+        return make_response(f'Node #{secondary_node.id} fault rate set to {fault_rate}', 200)
+    else:
+        return make_response('Unable to change fault rate', 500)
+
+@app.route('/get_stored_mesages', methods=['GET'])
+def get_stored_message():
+    response = app.response_class(
+        response=json.dumps({'message_ids': [message.id for message in secondary_node.messages]}),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
 
 if __name__ == '__main__':
     secondary_node = SecondaryNode(sys.argv[1])
-    app.run(host='0.0.0.0', threaded=True)
+    # app.run(host='0.0.0.0', threaded=True)
     
-    # app.run(host='localhost', port=str(sys.argv[2]), threaded=True, debug=True)
+    app.run(host='localhost', port=str(sys.argv[2]), threaded=True, debug=False)
     

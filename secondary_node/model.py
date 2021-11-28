@@ -1,5 +1,8 @@
 import json
+import bisect
 from functools import total_ordering
+import threading
+import random
 
 
 @total_ordering
@@ -25,19 +28,26 @@ class SecondaryNode:
         self.messages = list()
         self.messages_ids = list()
         self.delay = 0
+        self.is_faulty = False
+        self._fault_rate = 0.0
+
+    def set_fault_rate(self, fault_rate):
+        self._fault_rate = fault_rate
+
+    def response_faulty(self):
+        return random.random() < self._fault_rate
 
     def add_message(self, id, message):
         if id not in self.messages_ids:
-            self.messages.append(Message(id, message))
-            self.messages_ids.append(id)
-            return True
-        else: 
-            return False
-
+            with threading.Lock():
+                bisect.insort(self.messages, Message(id, message))
+                bisect.insort(self.messages_ids, id)
+        return not self.response_faulty()
+        
     def messages_to_display(self):
         messages_to_show = list()
         prev_message_id = 0
-        for message in sorted(self.messages):
+        for message in self.messages:
             if message.id == prev_message_id + 1:
                 messages_to_show.append(message)
                 prev_message_id = message.id
