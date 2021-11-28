@@ -14,3 +14,8 @@ services:
     command: app.py 202
     ports:
       - "5002:5000"
+  secondary_3:
+    build: secondary_node
+    command: app.py 203
+    ports:
+      - "5003:5000"
