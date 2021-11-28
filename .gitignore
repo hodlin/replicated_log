@@ -2,3 +2,4 @@
 __pycache__
 flask_quickstart.py
 simple_echo_*
+*.log

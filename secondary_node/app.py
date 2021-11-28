@@ -18,7 +18,7 @@ def add_message():
     time.sleep(secondary_node.delay)
     if request.method in ['POST']:
         message_data = request.json
-        print(message_data)
+        # print(message_data)
         message_added = secondary_node.add_message(message_data['id'], message_data['message'])
         if message_added:
             response = app.response_class(

@@ -1,5 +1,5 @@
 import json
-import threading
+import logging
 from flask import Flask
 from flask import request, make_response
 from model import PrimaryNode
@@ -7,6 +7,12 @@ from model import PrimaryNode
 primary_node = PrimaryNode()
 
 app = Flask(__name__)
+
+logging.basicConfig(filename='primary_node.log',
+                    level=logging.INFO,
+                    format='%(asctime)s %(levelname)s primary_node : %(message)s')
+
+primary_node = PrimaryNode(logger=app.logger)
 
 @app.route('/')
 def index():
@@ -47,7 +53,7 @@ if __name__ == '__main__':
     primary_node.add_secondary_node(201, 'secondary_1', '5000')
     primary_node.add_secondary_node(202, 'secondary_2', '5000')
     app.run(host='0.0.0.0', threaded=True)
-    
+
     # primary_node.add_secondary_node(201, 'localhost', '5001')
     # primary_node.add_secondary_node(202, 'localhost', '5002')
     # app.run(host='localhost', port='5000', threaded=True, debug=False)

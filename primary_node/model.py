@@ -72,10 +72,11 @@ class Message:
 
 class SecondaryNode:
        
-    def __init__(self, id, host, port):
+    def __init__(self, id, host, port, logger=None):
         self.id = id
         self.host = host
         self.port = port
+        self.logger = logger
         self.url = f'http://{host}:{port}'
         self.add_message_url = self.url + '/add_message'
         self.get_health_url = self.url + '/get_health'
@@ -84,20 +85,24 @@ class SecondaryNode:
         self.stored_messages_id = set()
         self.send_executor = ThreadPoolExecutor(max_workers=3)
         self.messages_to_send = queue.PriorityQueue()
-        self.timeout = 5
+        self._default_timeout = 5
+        self._max_timeout = self._default_timeout * 6
+        self.timeout = self._default_timeout
         self.is_healthy = False
-        self.retry_timer = RepeatedTimer((self.timeout + 2) * 5 + 1, self.retry)
+        self.retry_timer = RepeatedTimer(25, self.retry)
         self.get_health_timer = RepeatedTimer(self.timeout + 2, self.get_health)
     
     def _send_message(self, message):
-        print(f'Sending message to node #{self.id}: {message} | {threading.get_ident()}')
+        if self.logger:
+            self.logger.info(f'Sending message to node #{self.id}: {message} | request timeout is {self.timeout} | {threading.get_ident()}')
         header = {'content-type': 'application/json'}
         data = message.to_json()
         url = self.add_message_url
         try:
             response = requests.post(url, data=data, headers=header, timeout=self.timeout)
             if response:
-                print(f'Message is delivered to node #{self.id}: {message} | {threading.get_ident()}')
+                if self.logger:
+                    self.logger.info(f'Message is delivered to node #{self.id}: {message} | {threading.get_ident()}')
                 response_data = response.json()
                 self.stored_messages.update({response_data['message_id']: message})
                 message.latch.count_down()
@@ -105,23 +110,29 @@ class SecondaryNode:
                 raise HTTPError 
         except (RequestException) as e:
             # print(e)
-            print(f'Message is not delivered to node #{self.id}: {message} | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Message is not delivered to node #{self.id}: {message} | {threading.get_ident()}')
             with threading.Lock():
                 self.messages_to_send.put(message)
-            print(f'Message is put to retry queue at node #{self.id}: {message} | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Message is put to retry queue at node #{self.id}: {message} | {threading.get_ident()}')
 
     def send_message(self, message):
         self.send_executor.submit(self._send_message, message)
 
     def retry(self):
-        print(f'Retry procedure started for node #{self.id}.  | {threading.get_ident()}')
+        if self.logger:
+            self.logger.info(f'Retry procedure started for node #{self.id}.  | {threading.get_ident()}')
         if self.messages_to_send.empty():
-            print(f'Node #{self.id} has no messages for retry. Skipping. | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Node #{self.id} has no messages for retry. Skipping. | {threading.get_ident()}')
             return
         else:
-            print(f'Node #{self.id} has messages for retry. | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Node #{self.id} has messages for retry. | {threading.get_ident()}')
         if not self.is_healthy:
-            print(f'Node #{self.id} is not available. Skipping. | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Node #{self.id} is not available. Skipping. | {threading.get_ident()}')
             return
         messages_to_send = list()
         with threading.Lock():
@@ -139,15 +150,23 @@ class SecondaryNode:
                 # print(f'Heartbeat response from node #{self.id}: {response}')
                 if response:
                     is_healthy = response.json()['is_healthy']
+                    if is_healthy and self.timeout > self._default_timeout:
+                        self.timeout -= self._default_timeout
+                        self.get_health_timer.interval = self.timeout + 2
                     if not previous_health_status and is_healthy:
-                        print(f'Remote state change detected. Cheking remote consistency on node {self.id} | {threading.get_ident()}')
+                        if self.logger:
+                            self.logger.info(f'Remote state change detected. Cheking remote consistency on node {self.id} | {threading.get_ident()}')
                         self.check_remote_messages()
                 else:
                     raise HTTPError
             except (RequestException) as e:
                 # print(e)
                 is_healthy = False
-            print(f'Heartbeat to node #{self.id}: {is_healthy} | {threading.get_ident()}')
+                if self.timeout < self._max_timeout:
+                    self.timeout += self._default_timeout
+                    self.get_health_timer.interval = self.timeout + 2
+            if self.logger:
+                self.logger.info(f'Heartbeat to node #{self.id}: {is_healthy} | {threading.get_ident()}')
             self.is_healthy = is_healthy
 
     def check_remote_messages(self):
@@ -159,9 +178,11 @@ class SecondaryNode:
                     message = self.stored_messages[id]
                     with threading.Lock():
                         self.messages_to_send.put(message)
-                        print(f'Not delivered message found: {message}. Adding to retry queue on node #{self.id} | {threading.get_ident()}')
+                        if self.logger:
+                            self.logger.info(f'Not delivered message found: {message}. Adding to retry queue on node #{self.id} | {threading.get_ident()}')
         except (RequestException) as e:
-            print(f'Unable to get messages_list from remote node #{self.id} | {threading.get_ident()}')
+            if self.logger:
+                self.logger.info(f'Unable to get messages_list from remote node #{self.id} | {threading.get_ident()}')
 
 
     def __repr__(self):
@@ -169,13 +190,14 @@ class SecondaryNode:
 
 
 class PrimaryNode:
-    def __init__(self):
+    def __init__(self, logger=None):
         self.id = 101
         self.messages = list()
         self.messages_ids = list()
         self.max_message_id = 0
         self.secondary_nodes = list()
         self.timeout = None
+        self.logger = logger
     
     def check_quorum(self):
         quorum_size = len(self.secondary_nodes) // 2 + 1
@@ -195,13 +217,14 @@ class PrimaryNode:
         if self.get_secondary_node(id):
             return
         else:
-            self.secondary_nodes.append(SecondaryNode(id, host, port))
+            self.secondary_nodes.append(SecondaryNode(id, host, port, self.logger))
 
     def send_message(self, message):
         self.messages.append(message)
         self.messages_ids.append(message.id)
         self.max_message_id = max(self.messages_ids)
-        print(f'Message added to the primary node #{self.id}: {message} | {threading.get_ident()}')
+        if self.logger:
+            self.logger.info(f'Message added to the primary node #{self.id}: {message} | {threading.get_ident()}')
         message.latch.count_down()
 
     def add_message(self, message_body, write_consern):
@@ -214,15 +237,6 @@ class PrimaryNode:
             node.send_message(message)
         latch.wait()
         return new_message_id
-
-        # while True:
-        #     message_copies = 0
-        #     message_copies += 1 if new_message_id in self.messages_ids else 0
-        #     for secondary in self.secondary_nodes:
-        #         message_copies += 1 if new_message_id in secondary.stored_messages_id else 0
-        #     if message_copies >= write_consern:
-        #         return new_message_id
-        #     time.sleep(1)
 
     def messages_to_display(self):
         return [message for message in self.messages if message.latch.count <= 0]

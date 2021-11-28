@@ -38,11 +38,13 @@ class SecondaryNode:
         return random.random() < self._fault_rate
 
     def add_message(self, id, message):
-        if id not in self.messages_ids:
+        if self.response_faulty():
+            return False
+        elif id not in self.messages_ids:
             with threading.Lock():
                 bisect.insort(self.messages, Message(id, message))
                 bisect.insort(self.messages_ids, id)
-        return not self.response_faulty()
+        return True
         
     def messages_to_display(self):
         messages_to_show = list()
