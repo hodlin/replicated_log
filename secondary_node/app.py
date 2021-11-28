@@ -100,7 +100,7 @@ def get_stored_message():
 
 if __name__ == '__main__':
     secondary_node = SecondaryNode(sys.argv[1])
-    # app.run(host='0.0.0.0', threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
     
-    app.run(host='localhost', port=str(sys.argv[2]), threaded=True, debug=False)
+    # app.run(host='localhost', port=str(sys.argv[2]), threaded=True, debug=False)
     

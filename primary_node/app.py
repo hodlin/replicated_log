@@ -44,9 +44,10 @@ def list_message():
     return response
 
 if __name__ == '__main__':
-    # primary_node.add_secondary_node(201, 'secondary_1', '5000')
-    # primary_node.add_secondary_node(202, 'secondary_2', '5000')
-    primary_node.add_secondary_node(201, 'localhost', '5001')
-    primary_node.add_secondary_node(202, 'localhost', '5002')
-    # app.run(host='0.0.0.0', threaded=True)
-    app.run(host='localhost', port='5000', threaded=True, debug=False)
+    primary_node.add_secondary_node(201, 'secondary_1', '5000')
+    primary_node.add_secondary_node(202, 'secondary_2', '5000')
+    app.run(host='0.0.0.0', threaded=True)
+    
+    # primary_node.add_secondary_node(201, 'localhost', '5001')
+    # primary_node.add_secondary_node(202, 'localhost', '5002')
+    # app.run(host='localhost', port='5000', threaded=True, debug=False)

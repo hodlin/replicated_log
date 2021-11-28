@@ -22,7 +22,19 @@ Returns success message
 
 #### GET /list_messages
 
-Returns a list of messages in sorted order
+Returns a list of messages in sorted order that had been delivered with corresponding write consern
+
+#### POST /add_secondary
+
+{
+    "id": 203,
+    "host": "localhost",
+    "port": "5003"
+}
+
+Adding secondary node to the cluster in run time with specified parameters
+
+Returns success message
 
 ### Secondary node
 Secondary nodes are running on localhost's 5001 and 5002 ports and has following interfaces:
@@ -38,5 +50,15 @@ Returns a list of messages in sorted order. If any message is missed later messa
 }
 
 Sets delay of internal /add_message request to ***delay*** seconds
+
+Returns confirmation message
+
+#### POST /set_fault_rate
+
+{
+    "fault_rate": 10
+}
+
+Sets fault rate of /add_message request to ***fault_rate*** value. If fault_rate > 0.0 secondary returns error messages with fault_rate probability
 
 Returns confirmation message
