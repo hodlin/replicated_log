@@ -85,8 +85,8 @@ class SecondaryNode:
         self.stored_messages_id = set()
         self.send_executor = ThreadPoolExecutor(max_workers=3)
         self.messages_to_send = queue.PriorityQueue()
-        self._default_timeout = 2
-        self._max_timeout = self._default_timeout * 6
+        self._default_timeout = 3
+        self._max_timeout = self._default_timeout * 10
         self.timeout = self._default_timeout
         self.is_healthy = False
         self.retry_timer = RepeatedTimer(25, self.retry)
@@ -151,7 +151,7 @@ class SecondaryNode:
                 if response:
                     is_healthy = response.json()['is_healthy']
                     if is_healthy and self.timeout > self._default_timeout:
-                        self.timeout = self.timeout / self._default_timeout
+                        self.timeout = self.timeout - self._default_timeout
                         self.get_health_timer.interval = self.timeout + 2
                     if not previous_health_status and is_healthy:
                         if self.logger:
@@ -163,7 +163,7 @@ class SecondaryNode:
                 # print(e)
                 is_healthy = False
                 if self.timeout < self._max_timeout:
-                    self.timeout = self.timeout * self._default_timeout
+                    self.timeout = self.timeout + self._default_timeout * 2
                     self.get_health_timer.interval = self.timeout + 2
             if self.logger:
                 self.logger.info(f'Heartbeat to node #{self.id}: {is_healthy} | {threading.get_ident()}')
